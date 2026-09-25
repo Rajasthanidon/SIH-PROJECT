@@ -47,7 +47,7 @@ app.use(
   }),
 );
 
-app.set('trust proxy', 1);
+app.set('trust proxy', true); // Trust all hops (Cloudflare + Render LB)
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true }));
 const pgSession = require('connect-pg-simple')(session);
@@ -63,11 +63,11 @@ app.use(
     secret: env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
-    proxy: env.NODE_ENV === 'production',
+    proxy: env.NODE_ENV === 'production' || process.env.RENDER === 'true' || env.SESSION_COOKIE_SECURE,
     cookie: {
       httpOnly: true,
-      secure: env.NODE_ENV === 'production' ? Boolean(env.SESSION_COOKIE_SECURE) : false,
-      sameSite: env.NODE_ENV === 'production' ? 'none' : 'lax',
+      secure: env.SESSION_COOKIE_SECURE,
+      sameSite: env.SESSION_COOKIE_SECURE ? 'none' : 'lax',
       maxAge: env.SESSION_MAX_AGE,
     },
   }),
