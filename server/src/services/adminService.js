@@ -288,13 +288,18 @@ async function updateUserStatus(id, status) {
   await pool.query(`UPDATE users SET status = $1, is_active = $2, updated_at = NOW() WHERE id = $3`, [status, isActive, id]);
 }
 
-async function verifyEmailManual(id) {
+async function verifyEmailManual(id, expectedRole) {
   const pool = getPool();
   const userRes = await pool.query(`SELECT status, role, email_verified FROM users WHERE id = $1`, [id]);
   
   if (!userRes.rows[0]) {
     const AppError = require('../utils/AppError');
     throw new AppError('User not found.', 404);
+  }
+  
+  if (expectedRole && userRes.rows[0].role !== expectedRole) {
+    const AppError = require('../utils/AppError');
+    throw new AppError('Invalid user role for this verification endpoint.', 400);
   }
   
   if (userRes.rows[0].email_verified) {

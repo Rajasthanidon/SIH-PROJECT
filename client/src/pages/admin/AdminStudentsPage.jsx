@@ -9,7 +9,8 @@ import {
   deleteAdminStudent, 
   resendAdminStudentVerification,
   createAdminStudent,
-  updateAdminStudent
+  updateAdminStudent,
+  verifyAdminStudentEmail
 } from '../../services/adminApi';
 import AdminStudentProfileModal from '../../components/admin/AdminStudentProfileModal';
 
@@ -64,6 +65,7 @@ function AdminStudentsPage() {
       else if (action === 'activate') await activateAdminStudent(id);
       else if (action === 'delete') await deleteAdminStudent(id);
       else if (action === 'resend-verification') await resendAdminStudentVerification(id);
+      else if (action === 'verify-email') await verifyAdminStudentEmail(id);
       
       await loadStudents(); // Reload list
     } catch (err) {
@@ -232,6 +234,7 @@ function AdminStudentsPage() {
                       )}
                     </td>
                     <td className="px-6 py-4 text-right space-x-2">
+
                       <button onClick={() => setProfileModalId(student.id)} className="text-blue-600 hover:text-blue-800 font-medium text-sm">Profile</button>
                       
                       <button onClick={() => {
@@ -247,6 +250,10 @@ function AdminStudentsPage() {
                         });
                         setShowModal(true);
                       }} className="text-brand-600 hover:text-brand-800 font-medium text-sm">Edit</button>
+
+                      {!student.email_verified && (
+                        <button onClick={() => handleAction(student.id, 'verify-email', student.name)} className="text-emerald-600 hover:text-emerald-800 font-medium text-sm">Verify Email</button>
+                      )}
                       
                       {student.status === 'PENDING_APPROVAL' && (
                         <>

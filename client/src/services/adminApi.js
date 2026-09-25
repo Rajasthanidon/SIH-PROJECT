@@ -294,3 +294,15 @@ export async function deactivateAdminPlacement(id) {
 export async function resendAdminPlacementVerification(id) {
   return adminRequest(`/placement-cell/${id}/resend-verification`, { method: 'POST' });
 }
+
+export async function verifyAdminFacultyEmail(id) {
+  return adminRequest(`/faculty/${id}/verify-email`, { method: 'POST' });
+}
+
+export async function verifyAdminIndustryEmail(id) {
+  return adminRequest(`/industry/${id}/verify-email`, { method: 'POST' });
+}
+
+export async function verifyAdminPlacementEmail(id) {
+  return adminRequest(`/placement-cell/${id}/verify-email`, { method: 'POST' });
+}

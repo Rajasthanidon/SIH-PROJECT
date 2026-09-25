@@ -252,6 +252,19 @@ function AdminStudentApprovalsPage() {
     loadData();
   }
 
+  async function handleVerifyEmail(id, name) {
+    const confirmed = window.confirm(`Manually verify email address for student "${name}"?`);
+    if (!confirmed) return;
+    try {
+      await verifyAdminStudentEmail(id);
+      setActionMsg({ type: 'success', text: 'Email verified successfully.' });
+      setTimeout(() => setActionMsg(null), 3000);
+      loadData();
+    } catch (e) {
+      alert(`Error verifying email: ${e.message}`);
+    }
+  }
+
   async function handleInlineAction(id, action, name) {
     const confirmed = window.confirm(`${action === 'approve' ? 'Approve' : 'Reject'} student "${name}"?`);
     if (!confirmed) return;
@@ -275,6 +288,7 @@ function AdminStudentApprovalsPage() {
           onClose={() => { setReviewStudentId(null); loadData(); }}
           onApprove={handleApprove}
           onReject={handleReject}
+          onVerifyEmail={handleVerifyEmail}
         />
       )}
 
@@ -391,7 +405,17 @@ function AdminStudentApprovalsPage() {
                     </td>
                     <td className="px-6 py-4">{student.department || '—'}</td>
                     <td className="px-6 py-4">
-                      <EmailBadge verified={student.email_verified} />
+                      <div className="flex flex-col items-start gap-2">
+                        <EmailBadge verified={student.email_verified} />
+                        {!student.email_verified && (
+                          <button
+                            onClick={() => handleVerifyEmail(student.id, student.name)}
+                            className="text-[10px] px-2 py-1 rounded bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 font-semibold transition-colors uppercase tracking-wide"
+                          >
+                            Verify Email
+                          </button>
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-4 text-slate-500 text-xs">{formatDate(student.created_at)}</td>
                     <td className="px-6 py-4">

@@ -366,7 +366,7 @@ async function resendVerification(req, res, next) {
 
 async function verifyStudentEmail(req, res, next) {
   try {
-    await adminService.verifyEmailManual(req.params.id);
+    await adminService.verifyEmailManual(req.params.id, 'student');
     
     await auditService.logAdminAction({
       actorUserId: req.session.user.id,
@@ -376,6 +376,48 @@ async function verifyStudentEmail(req, res, next) {
       metadata: null
     });
     res.status(200).json({ message: 'Student email verified successfully.' });
+  } catch (error) { next(error); }
+}
+
+async function verifyFacultyEmail(req, res, next) {
+  try {
+    await adminService.verifyEmailManual(req.params.id, 'faculty');
+    await auditService.logAdminAction({
+      actorUserId: req.session.user.id,
+      action: 'FACULTY_EMAIL_VERIFIED_MANUAL',
+      entityType: 'user',
+      entityId: req.params.id,
+      metadata: null
+    });
+    res.status(200).json({ message: 'Faculty email verified successfully.' });
+  } catch (error) { next(error); }
+}
+
+async function verifyIndustryEmail(req, res, next) {
+  try {
+    await adminService.verifyEmailManual(req.params.id, 'industry');
+    await auditService.logAdminAction({
+      actorUserId: req.session.user.id,
+      action: 'INDUSTRY_EMAIL_VERIFIED_MANUAL',
+      entityType: 'user',
+      entityId: req.params.id,
+      metadata: null
+    });
+    res.status(200).json({ message: 'Industry email verified successfully.' });
+  } catch (error) { next(error); }
+}
+
+async function verifyPlacementEmail(req, res, next) {
+  try {
+    await adminService.verifyEmailManual(req.params.id, 'placement');
+    await auditService.logAdminAction({
+      actorUserId: req.session.user.id,
+      action: 'PLACEMENT_EMAIL_VERIFIED_MANUAL',
+      entityType: 'user',
+      entityId: req.params.id,
+      metadata: null
+    });
+    res.status(200).json({ message: 'Placement cell email verified successfully.' });
   } catch (error) { next(error); }
 }
 
@@ -800,5 +842,8 @@ module.exports = {
   suspendPlacement,
   activatePlacement,
   deactivatePlacement,
-  resendPlacementVerification
+  resendPlacementVerification,
+  verifyFacultyEmail,
+  verifyIndustryEmail,
+  verifyPlacementEmail
 };

@@ -11,8 +11,8 @@ import {
   deactivateAdminIndustry,
   resendAdminIndustryVerification,
   fetchAdminIndustryJobs,
-  fetchAdminIndustryInternships,
   fetchAdminIndustryApplications,
+  verifyAdminIndustryEmail,
 } from '../../services/adminApi';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -344,6 +344,11 @@ export default function AdminIndustryPage() {
       else if (action === 'activate')        await activateAdminIndustry(id);
       else if (action === 'deactivate')      await deactivateAdminIndustry(id);
       else if (action === 'resend')          await resendAdminIndustryVerification(id);
+      else if (action === 'verify-email') {
+        const ok = window.confirm(`Manually verify email for industry account "${name}"?`);
+        if (!ok) return;
+        await verifyAdminIndustryEmail(id);
+      }
       showToast(`${name}: action "${action}" completed.`);
       load();
     } catch (e) {
@@ -520,14 +525,22 @@ export default function AdminIndustryPage() {
                         </button>
                       )}
 
-                      {/* Resend verification — only for unverified */}
+                      {/* Resend & Verify email — only for unverified */}
                       {!f.email_verified && (
-                        <button
-                          onClick={() => handleAction(f.id, 'resend', f.company_name || f.name)}
-                          className="text-xs px-2.5 py-1 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-100 font-medium"
-                        >
-                          Resend
-                        </button>
+                        <>
+                          <button
+                            onClick={() => handleAction(f.id, 'resend', f.company_name || f.name)}
+                            className="text-xs px-2.5 py-1 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-100 font-medium"
+                          >
+                            Resend
+                          </button>
+                          <button
+                            onClick={() => handleAction(f.id, 'verify-email', f.company_name || f.name)}
+                            className="text-xs px-2.5 py-1 rounded-lg border border-blue-200 text-blue-700 bg-blue-50 hover:bg-blue-100 font-bold uppercase tracking-wider"
+                          >
+                            Verify
+                          </button>
+                        </>
                       )}
 
                       {/* Deactivate (soft-delete) */}

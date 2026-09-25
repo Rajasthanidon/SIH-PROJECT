@@ -10,6 +10,7 @@ import {
   activateAdminPlacement,
   deactivateAdminPlacement,
   resendAdminPlacementVerification,
+  verifyAdminPlacementEmail,
 } from '../../services/adminApi';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -227,6 +228,11 @@ export default function AdminPlacementCellPage() {
       else if (action === 'activate')        await activateAdminPlacement(id);
       else if (action === 'deactivate')      await deactivateAdminPlacement(id);
       else if (action === 'resend')          await resendAdminPlacementVerification(id);
+      else if (action === 'verify-email') {
+        const ok = window.confirm(`Manually verify email for placement cell member "${name}"?`);
+        if (!ok) return;
+        await verifyAdminPlacementEmail(id);
+      }
       showToast(`${name}: action "${action}" completed.`);
       load();
     } catch (e) {
@@ -381,9 +387,14 @@ export default function AdminPlacementCellPage() {
                       )}
 
                       {!p.email_verified && (
-                        <button onClick={() => handleAction(p.id, 'resend', p.name)} className="text-xs font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded transition-colors" title="Resend Verification">
-                          ✉️
-                        </button>
+                        <>
+                          <button onClick={() => handleAction(p.id, 'resend', p.name)} className="text-xs font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded transition-colors" title="Resend Verification">
+                            ✉️
+                          </button>
+                          <button onClick={() => handleAction(p.id, 'verify-email', p.name)} className="text-xs font-semibold text-blue-700 bg-blue-50 border border-blue-200 hover:bg-blue-100 px-2 py-1 rounded transition-colors tracking-wider uppercase">
+                            Verify
+                          </button>
+                        </>
                       )}
 
                       <button onClick={() => handleAction(p.id, 'deactivate', p.name)} className="text-xs font-semibold text-red-600 hover:text-red-900 px-2 py-1 hover:bg-red-50 rounded transition-colors" title="Deactivate completely">
