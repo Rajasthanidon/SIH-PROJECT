@@ -50,6 +50,16 @@ async function login(req, res, next) {
   try {
     const user = await authService.loginUser(req.body);
     req.session.user = user;
+    
+    // Explicitly await session save to prevent race conditions
+    // where the immediate /api/auth/me request arrives before the session is persisted.
+    await new Promise((resolve, reject) => {
+      req.session.save((err) => {
+        if (err) return reject(err);
+        resolve();
+      });
+    });
+
     return res.status(200).json({
       message: 'Login successful.',
       user,

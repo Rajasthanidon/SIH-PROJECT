@@ -17,6 +17,14 @@ router.post('/register/industry', registrationLimiter, authController.registerIn
 router.post('/verify-email', emailVerificationLimiter, authController.verifyEmail);
 router.post('/login', loginLimiter, authController.login);
 router.post('/logout', authController.logout);
+router.get('/diagnostics', (req, res) => {
+  res.json({
+    hasSession: !!req.session,
+    hasAuthenticatedUser: !!req.session?.user,
+    sessionUserId: req.session?.user?.id ?? null,
+    sessionUserRole: req.session?.user?.role ?? null
+  });
+});
 router.get('/me', requireAuth, authController.currentUser);
 router.post('/forgot-password', passwordResetLimiter, authController.forgotPassword);
 
