@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import {
   fetchAdminIndustry,
   fetchAdminIndustryStats,
@@ -74,13 +75,14 @@ function IndustryDetailModal({ industryId, onClose }) {
       .finally(() => setLoading(false));
   }, [industryId]);
 
-  return (
-    <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center rounded-t-2xl z-10">
+  return createPortal(
+    <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+        <div className="bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center shrink-0 z-10">
           <h3 className="text-lg font-bold text-slate-900">Industry Details</h3>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600 text-2xl leading-none">&times;</button>
         </div>
+        <div className="overflow-y-auto p-0">
         {loading ? (
           <div className="px-6 py-12 text-center text-slate-400">Loading…</div>
         ) : !data ? (
@@ -225,8 +227,10 @@ function IndustryDetailModal({ industryId, onClose }) {
             </div>
           </div>
         )}
+        </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
@@ -257,14 +261,14 @@ function IndustryFormModal({ editingId, initialData, onClose, onSaved }) {
     }
   }
 
-  return (
-    <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg">
-        <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center">
+  return createPortal(
+    <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
+        <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center shrink-0">
           <h3 className="text-lg font-bold">{editingId ? 'Edit Industry' : 'Add New Industry'}</h3>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600 text-2xl">&times;</button>
         </div>
-        <div className="px-6 py-5 space-y-4">
+        <div className="px-6 py-5 space-y-4 overflow-y-auto">
           {err && <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{err}</div>}
           <input type="text" className="input-field" placeholder="Company / Organization Name *" {...field('companyName')} />
           <input type="text" className="input-field" placeholder="Contact Person Name *" {...field('name')} />
@@ -278,14 +282,15 @@ function IndustryFormModal({ editingId, initialData, onClose, onSaved }) {
             <p className="text-xs text-slate-400">Industry account will start in PENDING_VERIFICATION state. Email verification is required to activate access.</p>
           )}
         </div>
-        <div className="px-6 pb-5 flex justify-end gap-3">
+        <div className="px-6 py-4 flex justify-end gap-3 shrink-0 border-t border-slate-100">
           <button className="ghost-button" onClick={onClose} disabled={saving}>Cancel</button>
           <button className="primary-button" onClick={handleSubmit} disabled={saving}>
             {saving ? 'Saving…' : (editingId ? 'Save Changes' : 'Create Industry')}
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 

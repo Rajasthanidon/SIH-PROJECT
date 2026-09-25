@@ -139,6 +139,10 @@ export async function deleteAdminStudent(id) {
   });
 }
 
+export async function verifyAdminStudentEmail(id) {
+  return adminRequest(`/students/${id}/verify-email`, { method: 'POST' });
+}
+
 export async function approveAdminStudent(id) {
   return adminRequest(`/students/${id}/approve`, { method: 'PATCH' });
 }
@@ -159,9 +163,7 @@ export async function resendAdminStudentVerification(id) {
   return adminRequest(`/students/${id}/resend-verification`, { method: 'POST' });
 }
 
-export async function verifyAdminStudentEmail(id) {
-  return adminRequest(`/students/${id}/verify-email`, { method: 'POST' });
-}
+
 
 export async function fetchApprovalQueue({ search = '', emailVerified, department, page = 1, limit = 50 } = {}) {
   const params = new URLSearchParams({ page, limit });

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { 
   fetchAdminStudents, 
   approveAdminStudent, 
@@ -84,11 +85,11 @@ function AdminStudentsPage() {
     <div className="page-content relative">
       <AdminStudentProfileModal studentId={profileModalId} onClose={() => setProfileModalId(null)} />
       {/* Modal */}
-      {showModal && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-lg">
-            <h3 className="text-xl font-bold mb-4">{editingId ? 'Edit Student' : 'Add New Student'}</h3>
-            <div className="space-y-4">
+      {showModal && createPortal(
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+          <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-lg max-h-[90vh] flex flex-col">
+            <h3 className="text-xl font-bold mb-4 shrink-0">{editingId ? 'Edit Student' : 'Add New Student'}</h3>
+            <div className="space-y-4 overflow-y-auto">
               <input type="text" placeholder="Full Name" className="input-field" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
               <input type="email" placeholder="Email (@nita.ug.ac.in)" className="input-field" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
               <input type="text" placeholder="Username" className="input-field" value={formData.username} onChange={e => setFormData({...formData, username: e.target.value})} />
@@ -101,7 +102,7 @@ function AdminStudentsPage() {
               </div>
               <input type="text" placeholder="Department / Branch" className="input-field" value={formData.department} onChange={e => setFormData({...formData, department: e.target.value})} />
             </div>
-            <div className="flex justify-end gap-3 mt-6">
+            <div className="flex justify-end gap-3 mt-6 shrink-0">
               <button className="ghost-button" onClick={() => setShowModal(false)}>Cancel</button>
               <button className="primary-button" onClick={async () => {
                 try {
@@ -115,7 +116,8 @@ function AdminStudentsPage() {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       <div className="flex justify-between items-end mb-8">

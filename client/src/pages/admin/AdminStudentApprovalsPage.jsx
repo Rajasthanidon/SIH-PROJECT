@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import {
   fetchApprovalQueue,
   fetchApprovalStats,
@@ -58,13 +59,14 @@ function StudentReviewModal({ studentId, onClose, onApprove, onReject }) {
     }
   }
 
-  return (
-    <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center rounded-t-2xl">
+  return createPortal(
+    <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+        <div className="bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center shrink-0">
           <h3 className="text-lg font-bold text-slate-900">Student Review</h3>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600 text-2xl leading-none">&times;</button>
         </div>
+        <div className="overflow-y-auto p-0">
 
         {loading ? (
           <div className="px-6 py-12 text-center text-slate-500">Loading student details...</div>
@@ -188,8 +190,10 @@ function StudentReviewModal({ studentId, onClose, onApprove, onReject }) {
             )}
           </div>
         )}
+        </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 

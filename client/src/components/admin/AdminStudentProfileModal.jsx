@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { fetchAdminStudentProfile } from '../../services/adminApi';
 
 function Section({ title, children }) {
@@ -14,7 +15,7 @@ function DetailItem({ label, value }) {
   return (
     <div>
       <p className="text-xs text-slate-500 font-medium mb-1">{label}</p>
-      <p className="text-sm text-slate-900 font-medium">{value || '—'}</p>
+      <p className="text-sm text-slate-900 font-medium">{value || 'Not provided'}</p>
     </div>
   );
 }
@@ -41,12 +42,12 @@ export default function AdminStudentProfileModal({ studentId, onClose }) {
 
   if (!studentId) return null;
 
-  return (
-    <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex justify-end z-50">
-      <div className="w-full max-w-3xl bg-white h-full shadow-2xl flex flex-col animate-slide-in-right">
+  return createPortal(
+    <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+      <div className="w-full max-w-3xl bg-white shadow-2xl flex flex-col rounded-2xl max-h-[90vh]">
         
         {/* Header */}
-        <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+        <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50 rounded-t-2xl">
           <h2 className="text-xl font-bold text-slate-900">Student Profile Inspector</h2>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600 text-3xl leading-none">&times;</button>
         </div>
@@ -233,6 +234,7 @@ export default function AdminStudentProfileModal({ studentId, onClose }) {
           animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
       `}</style>
-    </div>
+    </div>,
+    document.body
   );
 }
