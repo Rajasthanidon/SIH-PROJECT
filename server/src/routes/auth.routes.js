@@ -22,7 +22,11 @@ router.get('/diagnostics', (req, res) => {
     hasSession: !!req.session,
     hasAuthenticatedUser: !!req.session?.user,
     sessionUserId: req.session?.user?.id ?? null,
-    sessionUserRole: req.session?.user?.role ?? null
+    sessionUserRole: req.session?.user?.role ?? null,
+    isSecure: req.secure,
+    protocol: req.protocol,
+    xForwardedProto: req.headers['x-forwarded-proto'],
+    trustProxy: req.app.get('trust proxy'),
   });
 });
 router.get('/me', requireAuth, authController.currentUser);
