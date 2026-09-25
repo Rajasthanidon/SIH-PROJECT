@@ -13,7 +13,8 @@ app.use(session({
 
 app.get('/login', (req, res) => {
   req.session.user = { id: 1 };
-  req.session.save(() => {
+  req.session.save((err) => {
+    if (err) return res.status(500).json({ error: err });
     res.json({ ok: true });
   });
 });

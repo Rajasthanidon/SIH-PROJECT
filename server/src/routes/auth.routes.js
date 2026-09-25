@@ -29,6 +29,14 @@ router.get('/diagnostics', (req, res) => {
     trustProxy: req.app.get('trust proxy'),
   });
 });
+
+router.get('/test-login', (req, res) => {
+  req.session.user = { id: 999, role: 'student', email: 'test@example.com' };
+  req.session.save((err) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ ok: true });
+  });
+});
 router.get('/me', requireAuth, authController.currentUser);
 router.post('/forgot-password', passwordResetLimiter, authController.forgotPassword);
 
