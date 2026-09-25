@@ -42,7 +42,7 @@ app.use(
     cookie: {
       httpOnly: true,
       secure: env.NODE_ENV === 'production' ? Boolean(env.SESSION_COOKIE_SECURE) : false,
-      sameSite: 'lax',
+      sameSite: env.NODE_ENV === 'production' ? 'none' : 'lax',
       maxAge: env.SESSION_MAX_AGE,
     },
   }),
