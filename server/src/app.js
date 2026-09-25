@@ -31,8 +31,7 @@ app.use(
       const cleanOrigin = origin.replace(/^https?:\/\//, '').replace(/\/+$/, '');
       const isAllowed = allowedOrigins.some((allowed) => {
         const cleanAllowed = allowed.replace(/^https?:\/\//, '').replace(/\/+$/, '');
-        // Also allow matching if the origin is a Vercel preview URL of the same base project
-        return cleanAllowed === cleanOrigin || (cleanOrigin.endsWith('.vercel.app') && cleanAllowed.endsWith('.vercel.app'));
+        return cleanAllowed === cleanOrigin;
       });
 
       if (isAllowed) {
