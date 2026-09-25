@@ -1,4 +1,6 @@
 const studentService = require('../services/studentService');
+const { getPool } = require('../config/database');
+const fs = require('fs');
 
 async function getStudentProfile(req, res, next) {
   try {
@@ -23,9 +25,18 @@ async function uploadProfilePhoto(req, res, next) {
     if (!req.file) {
       return res.status(400).json({ message: 'No photo uploaded.' });
     }
-    const photoUrl = `/uploads/photos/${req.file.filename}`;
+
+    const dataBuffer = fs.readFileSync(req.file.path);
+    const base64Data = dataBuffer.toString('base64');
+    const mimeType = req.file.mimetype || 'image/jpeg';
+    const photoUrl = `data:${mimeType};base64,${base64Data}`;
+    
     const profile = await studentService.updateProfilePhoto(req.session.user.id, photoUrl);
-    res.status(200).json({ profile, message: 'Profile photo updated.', photoUrl });
+    
+    // Safely delete the temporary local file since we persisted to DB
+    try { fs.unlinkSync(req.file.path); } catch (e) {}
+    
+    res.status(200).json({ profile, message: 'Profile photo updated.', photoUrl: profile.profilePhoto });
   } catch (error) {
     next(error);
   }
@@ -36,15 +47,18 @@ async function uploadResume(req, res, next) {
     if (!req.file) {
       return res.status(400).json({ message: 'No resume uploaded.' });
     }
-    const resumeUrl = `/uploads/resumes/${req.file.filename}`;
+    
+
+    const dataBuffer = fs.readFileSync(req.file.path);
+    const base64Data = dataBuffer.toString('base64');
+    const mimeType = req.file.mimetype || 'application/pdf';
+    const resumeUrl = `data:${mimeType};base64,${base64Data}`;
     
     // Attempt parsing
     let parsedData = null;
     let extractedSkills = [];
     try {
-      const fs = require('fs');
       const pdf = require('pdf-parse');
-      const dataBuffer = fs.readFileSync(req.file.path);
       const pdfData = await pdf(dataBuffer);
       const text = pdfData.text || '';
       
@@ -117,8 +131,15 @@ async function uploadResume(req, res, next) {
       profile = await studentService.updateStudentProfile(req.session.user.id, updates);
     }
     
-    res.status(200).json({ profile, message: 'Resume uploaded and parsed successfully.', resumeUrl, parsedData });
+
+    try { fs.unlinkSync(req.file.path); } catch (e) {}
+    
+    res.status(200).json({ profile, message: 'Resume uploaded and parsed successfully.', resumeUrl: profile.resumeFileUrl, parsedData });
   } catch (error) {
+
+    if (req.file && req.file.path) {
+      try { fs.unlinkSync(req.file.path); } catch (e) {}
+    }
     next(error);
   }
 }
@@ -321,6 +342,46 @@ async function getStudentPortfolio(req, res, next) {
   }
 }
 
+async function getProfilePhotoFile(req, res, next) {
+  try {
+    const pool = getPool();
+    const result = await pool.query('SELECT profile_photo FROM users WHERE id = $1', [req.params.id]);
+    if (!result.rows[0] || !result.rows[0].profile_photo || !result.rows[0].profile_photo.startsWith('data:')) {
+      return res.status(404).send('Not found');
+    }
+    const dataUri = result.rows[0].profile_photo;
+    const matches = dataUri.match(/^data:([a-zA-Z0-9\/\-\.]+);base64,(.*)$/);
+    if (!matches || matches.length !== 3) return res.status(404).send('Invalid data');
+    const mimeType = matches[1];
+    const buffer = Buffer.from(matches[2], 'base64');
+    res.setHeader('Content-Type', mimeType);
+    res.setHeader('Cache-Control', 'public, max-age=86400');
+    res.send(buffer);
+  } catch (error) {
+    next(error);
+  }
+}
+
+async function getResumeFile(req, res, next) {
+  try {
+    const pool = getPool();
+    const result = await pool.query('SELECT resume_file_url FROM student_profiles WHERE user_id = $1', [req.params.id]);
+    if (!result.rows[0] || !result.rows[0].resume_file_url || !result.rows[0].resume_file_url.startsWith('data:')) {
+      return res.status(404).send('Not found');
+    }
+    const dataUri = result.rows[0].resume_file_url;
+    const matches = dataUri.match(/^data:([a-zA-Z0-9\/\-\.]+);base64,(.*)$/);
+    if (!matches || matches.length !== 3) return res.status(404).send('Invalid data');
+    const mimeType = matches[1];
+    const buffer = Buffer.from(matches[2], 'base64');
+    res.setHeader('Content-Type', mimeType);
+    res.setHeader('Content-Disposition', 'inline; filename="resume.pdf"');
+    res.send(buffer);
+  } catch (error) {
+    next(error);
+  }
+}
+
 module.exports = {
   getStudentProfile,
   updateStudentProfile,
@@ -348,4 +409,6 @@ module.exports = {
   getStudentPortfolio,
   uploadProfilePhoto,
   uploadResume,
+  getProfilePhotoFile,
+  getResumeFile,
 };
