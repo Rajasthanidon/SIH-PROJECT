@@ -82,6 +82,7 @@ app.get('/', (req, res) => {
     name: 'Academia–Industry Collaboration Portal API',
     status: 'ok',
     version: '0.1.0-foundation',
+    commit: process.env.RENDER_GIT_COMMIT || 'local',
   });
 });
 
