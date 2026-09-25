@@ -26,7 +26,7 @@ function getRequiredSecret(name, fallback) {
   return value;
 }
 
-const CLIENT_ORIGINS = parseCommaList(process.env.CLIENT_ORIGIN, ['http://localhost:5173']);
+const CLIENT_ORIGINS = parseCommaList(process.env.CLIENT_ORIGIN, ['http://localhost:5173']).map(o => o.replace(/\/+$/, ''));
 const PUBLIC_REGISTRATION_ROLES = parseCommaList(process.env.PUBLIC_REGISTRATION_ROLES, [
   'student',
   'faculty',
