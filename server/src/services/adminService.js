@@ -9,7 +9,7 @@ async function getPlatformStats() {
   const res = await pool.query(`
     SELECT 
       (SELECT COUNT(*) FROM users WHERE role = 'student') as total_students,
-      (SELECT COUNT(*) FROM users WHERE role = 'student' AND status = 'PENDING_APPROVAL') as pending_students,
+      (SELECT COUNT(*) FROM users WHERE role = 'student' AND status IN ('PENDING_APPROVAL', 'PENDING_VERIFICATION')) as pending_students,
       (SELECT COUNT(*) FROM users WHERE role = 'faculty') as total_faculty,
       (SELECT COUNT(*) FROM users WHERE role = 'industry') as total_industry,
       (SELECT COUNT(*) FROM users WHERE role = 'placement') as total_placement_cell,
@@ -188,7 +188,7 @@ async function updateStudent(id, payload) {
 async function getStudentApprovalQueue({ search = '', emailVerified, department, page = 1, limit = 50 } = {}) {
   const pool = getPool();
 
-  const conditions = [`role = 'student'`, `status = 'PENDING_APPROVAL'`];
+  const conditions = [`role = 'student'`, `status IN ('PENDING_APPROVAL', 'PENDING_VERIFICATION')`];
   const values = [];
 
   if (search) {
@@ -215,7 +215,7 @@ async function getStudentApprovalQueue({ search = '', emailVerified, department,
     LIMIT $${values.length - 1} OFFSET $${values.length}
   `;
 
-  const countQuery = `SELECT COUNT(*) FROM users WHERE ${conditions.slice(0, conditions.length).join(' AND ')} AND role = 'student' AND status = 'PENDING_APPROVAL'`;
+  const countQuery = `SELECT COUNT(*) FROM users WHERE ${conditions.slice(0, conditions.length).join(' AND ')} AND role = 'student' AND status IN ('PENDING_APPROVAL', 'PENDING_VERIFICATION')`;
 
   const [res, countRes] = await Promise.all([
     pool.query(query, values),
@@ -233,9 +233,9 @@ async function getStudentApprovalQueue({ search = '', emailVerified, department,
 async function getApprovalStats() {
   const pool = getPool();
   const [pending, verifiedPending, unverifiedPending, recentlyApproved] = await Promise.all([
-    pool.query("SELECT COUNT(*) FROM users WHERE role='student' AND status='PENDING_APPROVAL'"),
-    pool.query("SELECT COUNT(*) FROM users WHERE role='student' AND status='PENDING_APPROVAL' AND email_verified=TRUE"),
-    pool.query("SELECT COUNT(*) FROM users WHERE role='student' AND status='PENDING_APPROVAL' AND email_verified=FALSE"),
+    pool.query("SELECT COUNT(*) FROM users WHERE role='student' AND status IN ('PENDING_APPROVAL', 'PENDING_VERIFICATION')"),
+    pool.query("SELECT COUNT(*) FROM users WHERE role='student' AND status IN ('PENDING_APPROVAL', 'PENDING_VERIFICATION') AND email_verified=TRUE"),
+    pool.query("SELECT COUNT(*) FROM users WHERE role='student' AND status IN ('PENDING_APPROVAL', 'PENDING_VERIFICATION') AND email_verified=FALSE"),
     pool.query("SELECT COUNT(*) FROM users WHERE role='student' AND status='ACTIVE' AND updated_at > NOW() - INTERVAL '7 days'")
   ]);
   return {
@@ -286,6 +286,32 @@ async function updateUserStatus(id, status) {
     isActive = false;
   }
   await pool.query(`UPDATE users SET status = $1, is_active = $2, updated_at = NOW() WHERE id = $3`, [status, isActive, id]);
+}
+
+async function verifyEmailManual(id) {
+  const pool = getPool();
+  const userRes = await pool.query(`SELECT status, role, email_verified FROM users WHERE id = $1`, [id]);
+  
+  if (!userRes.rows[0]) {
+    const AppError = require('../utils/AppError');
+    throw new AppError('User not found.', 404);
+  }
+  
+  if (userRes.rows[0].email_verified) {
+    const AppError = require('../utils/AppError');
+    throw new AppError('Email is already verified.', 400);
+  }
+  
+  await pool.query(`UPDATE users SET email_verified = TRUE WHERE id = $1`, [id]);
+  
+  if (userRes.rows[0].status === 'PENDING_VERIFICATION') {
+    const role = userRes.rows[0].role;
+    const nextStatus = role === 'student' ? 'PENDING_APPROVAL' : 'ACTIVE';
+    const isActive = nextStatus === 'ACTIVE';
+    await pool.query(`UPDATE users SET status = $2, is_active = $3 WHERE id = $1`, [id, nextStatus, isActive]);
+  }
+  
+  await pool.query(`DELETE FROM email_verifications WHERE user_id = $1`, [id]);
 }
 
 async function resendVerification(id) {
@@ -716,6 +742,7 @@ module.exports = {
   updateStudent,
   deleteStudent,
   updateUserStatus,
+  verifyEmailManual,
   resendVerification,
   getStudentApprovalQueue,
   getApprovalStats,

@@ -23,6 +23,7 @@ router.patch('/students/:id/reject', adminController.rejectStudent);
 router.patch('/students/:id/suspend', adminController.suspendStudent);
 router.patch('/students/:id/activate', adminController.activateStudent);
 router.post('/students/:id/resend-verification', adminController.resendVerification);
+router.post('/students/:id/verify-email', adminController.verifyStudentEmail);
 
 router.get('/faculty', adminController.getFaculty);
 router.get('/faculty/stats', adminController.getFacultyStats);

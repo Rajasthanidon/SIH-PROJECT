@@ -58,7 +58,8 @@ async function uploadResume(req, res, next) {
       
       parsedData = {
         textLength: text.length,
-        detectedSkills: extractedSkills
+        detectedSkills: extractedSkills,
+        text: text
       };
     } catch (parseErr) {
       console.error('PDF parsing failed:', parseErr);
@@ -78,12 +79,45 @@ async function uploadResume(req, res, next) {
     }
     
     let parsedSkillsObj = [];
+    let extractedGithub = '';
+    let extractedLinkedin = '';
+    
     if (parsedData) {
       parsedSkillsObj = extractedSkills.map(s => ({ name: s, level: 50, confidence: 0.8 }));
+      
+      const text = parsedData.text || '';
+      
+      const githubMatch = text.match(/github\.com\/([a-zA-Z0-9-]+)/i);
+      if (githubMatch) {
+        extractedGithub = `https://github.com/${githubMatch[1]}`;
+      }
+      
+      const linkedinMatch = text.match(/linkedin\.com\/in\/([a-zA-Z0-9-]+)/i);
+      if (linkedinMatch) {
+        extractedLinkedin = `https://linkedin.com/in/${linkedinMatch[1]}`;
+      }
     }
 
-    const profile = await studentService.updateResumeFile(req.session.user.id, resumeUrl, parsedData, parsedSkillsObj);
-    res.status(200).json({ profile, message: 'Resume uploaded successfully.', resumeUrl, parsedData });
+    let profile = await studentService.updateResumeFile(req.session.user.id, resumeUrl, parsedData, parsedSkillsObj);
+    
+    if (parsedSkillsObj.length > 0 || extractedGithub || extractedLinkedin) {
+      const existingSkills = profile.skills || [];
+      const newSkills = [...existingSkills];
+      
+      parsedSkillsObj.forEach(ps => {
+        if (!newSkills.find(s => s.name.toLowerCase() === ps.name.toLowerCase())) {
+          newSkills.push(ps);
+        }
+      });
+      
+      const updates = { skills: newSkills };
+      if (extractedGithub && !profile.githubUrl) updates.githubUrl = extractedGithub;
+      if (extractedLinkedin && !profile.linkedinUrl) updates.linkedinUrl = extractedLinkedin;
+      
+      profile = await studentService.updateStudentProfile(req.session.user.id, updates);
+    }
+    
+    res.status(200).json({ profile, message: 'Resume uploaded and parsed successfully.', resumeUrl, parsedData });
   } catch (error) {
     next(error);
   }

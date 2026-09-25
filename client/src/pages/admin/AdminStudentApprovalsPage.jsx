@@ -5,6 +5,7 @@ import {
   approveAdminStudent,
   rejectAdminStudent,
   fetchAdminStudentById,
+  verifyAdminStudentEmail,
 } from '../../services/adminApi';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -81,7 +82,27 @@ function StudentReviewModal({ studentId, onClose, onApprove, onReject }) {
                     : 'Email has NOT been verified. Approving will allow login only if email is later verified.'}
                 </p>
               </div>
-              <EmailBadge verified={data.email_verified} />
+              <div className="flex flex-col gap-2 items-end">
+                <EmailBadge verified={data.email_verified} />
+                {!data.email_verified && (
+                  <button
+                    onClick={async () => {
+                      if (!window.confirm("Manually verify this student's email address?")) return;
+                      try {
+                        await verifyAdminStudentEmail(studentId);
+                        alert('Email verified successfully.');
+                        const res = await fetchAdminStudentById(studentId);
+                        setData(res);
+                      } catch (e) {
+                        alert(`Error: ${e.message}`);
+                      }
+                    }}
+                    className="text-xs bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 px-2 py-1 rounded"
+                  >
+                    Verify Email
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Personal Info */}

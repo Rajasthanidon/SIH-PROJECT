@@ -364,6 +364,21 @@ async function resendVerification(req, res, next) {
   }
 }
 
+async function verifyStudentEmail(req, res, next) {
+  try {
+    await adminService.verifyEmailManual(req.params.id);
+    
+    await auditService.logAdminAction({
+      actorUserId: req.session.user.id,
+      action: 'STUDENT_EMAIL_VERIFIED_MANUAL',
+      entityType: 'user',
+      entityId: req.params.id,
+      metadata: null
+    });
+    res.status(200).json({ message: 'Student email verified successfully.' });
+  } catch (error) { next(error); }
+}
+
 async function getInternships(req, res, next) {
   try {
     const internships = await adminService.getAllInternships();
@@ -753,6 +768,7 @@ module.exports = {
   suspendStudent,
   activateStudent,
   resendVerification,
+  verifyStudentEmail,
   getApprovalQueue,
   getApprovalStats: getApprovalStatsController,
   // Faculty

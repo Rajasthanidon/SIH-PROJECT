@@ -99,9 +99,12 @@ async function verifyEmailToken(token) {
 
   await pool.query(`UPDATE users SET email_verified = TRUE WHERE id = $1`, [userId]);
 
-  const userRes = await pool.query(`SELECT status FROM users WHERE id = $1`, [userId]);
+  const userRes = await pool.query(`SELECT role, status FROM users WHERE id = $1`, [userId]);
   if (userRes.rows[0] && userRes.rows[0].status === 'PENDING_VERIFICATION') {
-    await pool.query(`UPDATE users SET status = 'ACTIVE', is_active = TRUE WHERE id = $1`, [userId]);
+    const role = userRes.rows[0].role;
+    const nextStatus = role === 'student' ? 'PENDING_APPROVAL' : 'ACTIVE';
+    const isActive = nextStatus === 'ACTIVE';
+    await pool.query(`UPDATE users SET status = $2, is_active = $3 WHERE id = $1`, [userId, nextStatus, isActive]);
   }
 
   await pool.query(`DELETE FROM email_verifications WHERE user_id = $1`, [userId]);

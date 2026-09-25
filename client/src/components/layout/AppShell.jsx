@@ -97,7 +97,11 @@ function AppShell() {
 
         {user ? (
           <div className="sidebar-user-card">
-            <div className="avatar-badge">{user.name?.charAt(0)?.toUpperCase() || 'U'}</div>
+            {user.profilePhoto ? (
+              <img src={user.profilePhoto} alt={user.name} className="avatar-badge object-cover" />
+            ) : (
+              <div className="avatar-badge">{user.name?.charAt(0)?.toUpperCase() || 'U'}</div>
+            )}
             <div>
               <p className="user-name">{user.name || 'User'}</p>
               <p className="user-role">{pageTitle}</p>
