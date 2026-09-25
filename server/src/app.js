@@ -17,7 +17,25 @@ const allowedOrigins = env.CLIENT_ORIGINS || [env.CLIENT_ORIGIN];
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
+      if (!origin) {
+        callback(null, true);
+        return;
+      }
+
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+        return;
+      }
+
+      // Robust match: Strip protocol and trailing slashes to compare hostnames
+      const cleanOrigin = origin.replace(/^https?:\/\//, '').replace(/\/+$/, '');
+      const isAllowed = allowedOrigins.some((allowed) => {
+        const cleanAllowed = allowed.replace(/^https?:\/\//, '').replace(/\/+$/, '');
+        // Also allow matching if the origin is a Vercel preview URL of the same base project
+        return cleanAllowed === cleanOrigin || (cleanOrigin.endsWith('.vercel.app') && cleanAllowed.endsWith('.vercel.app'));
+      });
+
+      if (isAllowed) {
         callback(null, true);
         return;
       }
