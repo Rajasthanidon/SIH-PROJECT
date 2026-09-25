@@ -27,6 +27,8 @@ router.get('/diagnostics', (req, res) => {
     protocol: req.protocol,
     xForwardedProto: req.headers['x-forwarded-proto'],
     trustProxy: req.app.get('trust proxy'),
+    nodeEnv: process.env.NODE_ENV,
+    envJsNodeEnv: require('../config/env').NODE_ENV
   });
 });
 

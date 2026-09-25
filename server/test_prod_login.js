@@ -1,12 +1,8 @@
-fetch('https://sih-project-y3vp.onrender.com/api/auth/login', {
-  method: 'POST',
+fetch('https://sih-project-y3vp.onrender.com/api/auth/test-login', {
+  method: 'GET',
   headers: {
     'Content-Type': 'application/json'
-  },
-  body: JSON.stringify({
-    username: 'test@example.com',
-    password: 'password123'
-  })
+  }
 })
 .then(res => {
   console.log('Status:', res.status);
