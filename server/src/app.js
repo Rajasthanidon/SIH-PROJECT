@@ -66,8 +66,8 @@ app.use(
     proxy: env.NODE_ENV === 'production' || process.env.RENDER === 'true' || env.SESSION_COOKIE_SECURE,
     cookie: {
       httpOnly: true,
-      secure: env.SESSION_COOKIE_SECURE,
-      sameSite: env.SESSION_COOKIE_SECURE ? 'none' : 'lax',
+      secure: process.env.RENDER === 'true' || env.SESSION_COOKIE_SECURE,
+      sameSite: (process.env.RENDER === 'true' || env.SESSION_COOKIE_SECURE) ? 'none' : 'lax',
       maxAge: env.SESSION_MAX_AGE,
     },
   }),

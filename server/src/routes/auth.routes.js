@@ -28,7 +28,9 @@ router.get('/diagnostics', (req, res) => {
     xForwardedProto: req.headers['x-forwarded-proto'],
     trustProxy: req.app.get('trust proxy'),
     nodeEnv: process.env.NODE_ENV,
-    envJsNodeEnv: require('../config/env').NODE_ENV
+    envJsNodeEnv: require('../config/env').NODE_ENV,
+    envJsSessionCookieSecure: require('../config/env').SESSION_COOKIE_SECURE,
+    rawProcessEnvSessionCookieSecure: process.env.SESSION_COOKIE_SECURE,
   });
 });
 
