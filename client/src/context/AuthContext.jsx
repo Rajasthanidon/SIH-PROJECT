@@ -83,12 +83,23 @@ function AuthProvider({ children }) {
   };
 
   const login = async ({ username, password }) => {
-    const response = await fetch(`${API_BASE_URL}/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({ username, password }),
-    });
+    const url = `${API_BASE_URL}/auth/login`;
+    console.log('[API DEBUG] preparing request', { url, method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' } });
+    
+    let response;
+    try {
+      console.log('[API DEBUG] fetch started', url);
+      response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ username, password }),
+      });
+      console.log('[API DEBUG] fetch completed', { url, status: response.status });
+    } catch (error) {
+      console.error('[API DEBUG] fetch failed', error);
+      throw error;
+    }
 
     const payload = await response.json();
 
