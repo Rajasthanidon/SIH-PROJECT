@@ -51,6 +51,12 @@ async function login(req, res, next) {
     const user = await authService.loginUser(req.body);
     req.session.user = user;
     
+    console.log('[DIAGNOSTIC] login before save:', {
+      hasSession: !!req.session,
+      hasUser: !!req.session?.user,
+      userId: req.session?.user?.id ?? null
+    });
+
     // Explicitly await session save to prevent race conditions
     // where the immediate /api/auth/me request arrives before the session is persisted.
     await new Promise((resolve, reject) => {
@@ -58,6 +64,12 @@ async function login(req, res, next) {
         if (err) return reject(err);
         resolve();
       });
+    });
+
+    console.log('[DIAGNOSTIC] login after save:', {
+      hasSession: !!req.session,
+      hasUser: !!req.session?.user,
+      userId: req.session?.user?.id ?? null
     });
 
     return res.status(200).json({

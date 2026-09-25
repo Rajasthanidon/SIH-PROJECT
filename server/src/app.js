@@ -33,8 +33,16 @@ app.use(
 app.set('trust proxy', 1);
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true }));
+const pgSession = require('connect-pg-simple')(session);
+const { getPool } = require('./config/database');
+
 app.use(
   session({
+    store: new pgSession({
+      pool: getPool(),
+      tableName: 'session',
+      createTableIfMissing: false
+    }),
     secret: env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
